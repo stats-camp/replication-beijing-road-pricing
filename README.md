@@ -3,9 +3,10 @@
 Jun Yang, Avralt-Od Purevjav, and Shanjun Li — *American Economic Journal:
 Economic Policy* 12 (1), 2020.
 
-This repository adapts the paper's official replication package into a focused
-exercise for [stats.camp](https://stats.camp). It uses only Stata-compatible
-syntax and includes every dataset used by the deposited do-file.
+This repository preserves the paper's official Stata replication code as an
+exercise for [stats.camp](https://stats.camp). It includes every dataset used
+by the deposited do-file. Fidelity to the original code takes priority over
+end-to-end browser compatibility; unsupported commands are left intact.
 
 **Open in stats.camp:**
 [main_codes.do](https://stats.camp/app?open=https%3A%2F%2Fgithub.com%2Fstats-camp%2Freplication-beijing-road-pricing.git&file=main_codes.do)
@@ -28,7 +29,7 @@ restricted dataset.
 
 | Path | Description |
 | --- | --- |
-| `main_codes.do` | Browser exercise: Table 2, Figure 4, column 1 of Tables 6–8, and Figure 6 calculations/panels b–c |
+| `main_codes.do` | Authors' complete 386-line do-file: Table 2, Tables 6–8, and Figures 3–6; byte-for-byte identical to the original |
 | `main_codes_original.do` | Authors' complete 386-line do-file, unchanged |
 | `traffic_data.dta` | Released traffic sample: 397,301 observations, 50 road segments |
 | `weather_data.dta` | Hourly weather controls: 8,760 observations |
@@ -36,65 +37,56 @@ restricted dataset.
 | `ReadMe.pdf` | Authors' original package note |
 | `LICENSE.txt` | Original BSD-3-Clause terms for code and CC BY 4.0 terms for data and other materials |
 
-## What runs
-
-The complete adapted do-file was tested end-to-end on 2026-09-09 with both the
-current stats.camp development engine and StataNow 19.5. It reaches the end
-without an `r()` error and exercises labeled `.dta` imports, wildcard
-varlists, `collapse`, `foreach`, value labels, overlaid `twoway connected`
-plots, `xtset`, clustered OLS, `xi`, frequency weights, `testparm`, `recast`,
-clustered `ivregress 2sls`, macros, conditional generation, and functions in
-expressions.
-
-Useful checkpoints are:
-
-| Result | stats.camp | StataNow 19.5 |
-| --- | ---: | ---: |
-| Table 2 mean speed | 67.58307 | 67.58307 |
-| Table 2 mean volume | 679.034 | 679.034 |
-| Table 2 mean density | 12.40809 | 12.40809 |
-| Table 6 col. 1 density coefficient (clustered SE) | -0.743724 (0.0974441) | -0.743724 (0.0974441) |
-| Table 7 col. 1 excluded-instrument test | F(28,49) = 12.66 | F(28,49) = 12.66 |
-| Table 8 col. 1 density coefficient | -0.886599 | -0.886599 |
-| Table 8 col. 1 clustered SE | 0.107894 | 0.1068095 |
-| Mean OLS-based MECC | 0.1293409 | 0.1293409 |
-| Mean IV-based MECC | 0.2788574 | 0.2788574 |
-
-The remaining one-percent IV standard-error difference is a known current
-stats.camp parity gap; the coefficient is identical. The exercise does not
-hide that difference.
-
 ## Adaptations and scope
 
-- `set processors 2` was removed because browser execution does not expose
-  Stata's processor setting.
-- Figure 4 keeps the authors' transformations and series, but displays its
-  density and speed panels separately because graph-memory `combine`/`drop`
-  commands are not currently available. Cosmetic Stata scheme options were
-  removed.
-- For Tables 7–8, `tailhour` and `tailring` encode the same 28-dimensional
-  excluded-instrument space as the original selected-level interactions.
-  `xi` materializes physical indicators for the current `ivregress` path.
-- Those instruments are constant within road-by-policy-hour-policy-ring cells.
-  The exercise therefore collapses to 1,250 cell means and applies frequency
-  weights. This preserves the Table 7 coefficients, clustered standard errors,
-  joint test, and the Table 8 coefficient and clustered calculation while
-  making browser execution practical. R-squared and root-MSE values are not
-  comparable to the uncollapsed regressions because within-cell outcome
-  variation is discarded.
-- Figure 6 uses the authors' supplied estimates and formulas. Panels b and c
-  render separately. Panel a's raw scatter plus quadratic `lpoly` smoother is
-  retained in the original file but omitted from the default exercise because
-  that smoother and a 35,000-point browser SVG are not yet a faithful,
-  responsive path.
-- Figure 3 is omitted from the default exercise because each released-sample
-  panel contains 43,456 points. Figure 5 relies on coefficient extraction
-  inside generated-variable expressions and a large fixed-effects model.
-  Tables 6–8 columns 2–5 likewise require larger factor-variable designs.
-  All remain available in `main_codes_original.do` as compatibility targets.
+There are **no changes to the original do-file**. `main_codes.do` and
+`main_codes_original.do` are byte-for-byte identical, including comments,
+formatting, and setup commands. The original already uses relative data paths,
+so no path substitutions are needed. Both filenames are retained so the
+existing exercise link and source-integrity reference remain valid.
+
+All table columns, figure panels, graph options, factor-variable expressions,
+and estimation commands are preserved. The earlier browser-specific rewrites
+have been removed: there are no added `xi` indicators, weighted cell-mean
+regressions, type conversions, simplified plots, or omitted sections. Only the
+authors' own data transformations remain. Unsupported commands are not
+commented out, replaced, or wrapped in `capture`.
 
 No value in any deposited `.dta` file was changed. No external data,
 community-contributed command, or non-Stata preprocessing step is required.
+
+## Running and compatibility
+
+Open `main_codes.do` using the link above. The data files must be in the working
+directory, as in this repository. In Stata, run `do main_codes.do` from that
+directory; the original `set processors 2` setting requires a suitable Stata/MP
+installation.
+
+The unchanged file is a compatibility exercise, **not a claim that the whole
+script runs in stats.camp**. A setup-and-Table-2 smoke test with the local
+development engine on 2026-09-09 reported `r(198)` at `set processors 2`.
+The test harness continued after that error and successfully ran the Table 2
+traffic and weather summaries; a successful full sequential run is not implied.
+The traffic means were 67.58307 (speed), 679.034 (volume), and 12.40809 (density).
+
+Known compatibility targets in that development version include:
+
+- `set processors 2` in the original setup.
+- Graph-memory commands `graph combine` and `graph drop`.
+- The quadratic `twoway lpoly` smoother in Figure 6a.
+- The original factor-variable forms such as `ib(0).skc`,
+  `i(1).tail49#i(112/115).ring`, and `i(112/115).ring#i(1/23).hour`.
+
+The large scatter plots and full observation-level fixed-effects regressions
+may also be expensive in a browser. No sampling or additional aggregation is
+introduced to speed them up. To explore supported portions, run a section
+starting with its `use ..., clear` command and include its macro definitions
+and data-preparation steps. Errors remain visible, and later results should
+not be treated as valid if their prerequisites failed.
+
+The earlier end-to-end validation and regression checkpoint table applied to
+the now-removed simplified exercise, not this unchanged original. Full
+end-to-end browser compatibility has not been established for this version.
 
 ## Source integrity
 
