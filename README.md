@@ -29,8 +29,8 @@ restricted dataset.
 
 | Path | Description |
 | --- | --- |
-| `main_codes.do` | Authors' complete 386-line do-file: Table 2, Tables 6–8, and Figures 3–6; byte-for-byte identical to the original |
-| `main_codes_original.do` | Authors' complete 386-line do-file, unchanged |
+| `main_codes.do` | Authors' complete 386-line do-file, unchanged: Table 2, Tables 6–8, and Figures 3–6 |
+| `main_codes_original.do` | Byte-identical copy kept so the original exercise link and source-integrity reference stay valid |
 | `traffic_data.dta` | Released traffic sample: 397,301 observations, 50 road segments |
 | `weather_data.dta` | Hourly weather controls: 8,760 observations |
 | `mecc_data.dta` | Authors' marginal-external-congestion-cost calculations: 36,672 observations |
@@ -39,18 +39,18 @@ restricted dataset.
 
 ## Adaptations and scope
 
-There are **no changes to the original do-file**. `main_codes.do` and
-`main_codes_original.do` are byte-for-byte identical, including comments,
-formatting, and setup commands. The original already uses relative data paths,
-so no path substitutions are needed. Both filenames are retained so the
-existing exercise link and source-integrity reference remain valid.
+`main_codes.do` is the deposited source without any edit. Earlier revisions of
+this exercise commented out `set processors 2` and removed a repeated
+`xlabel()` from Figure 4; both are valid Stata, so the engine now accepts them
+and the edits were reverted. `main_codes_original.do` remains byte-for-byte
+identical to the deposited source. The original already uses relative data
+paths, so no path substitutions are needed.
 
-All table columns, figure panels, graph options, factor-variable expressions,
-and estimation commands are preserved. The earlier browser-specific rewrites
-have been removed: there are no added `xi` indicators, weighted cell-mean
-regressions, type conversions, simplified plots, or omitted sections. Only the
-authors' own data transformations remain. Unsupported commands are not
-commented out, replaced, or wrapped in `capture`.
+All table columns, figure panels, effective graph settings, factor-variable
+expressions, and estimation commands are preserved. There are no added `xi`
+indicators, weighted cell-mean regressions, type conversions, simplified plots,
+omitted sections, or `capture` wrappers. Only the authors' own data
+transformations remain.
 
 No value in any deposited `.dta` file was changed. No external data,
 community-contributed command, or non-Stata preprocessing step is required.
@@ -59,34 +59,47 @@ community-contributed command, or non-Stata preprocessing step is required.
 
 Open `main_codes.do` using the link above. The data files must be in the working
 directory, as in this repository. In Stata, run `do main_codes.do` from that
-directory; the original `set processors 2` setting requires a suitable Stata/MP
-installation.
+directory.
 
-The unchanged file is a compatibility exercise, **not a claim that the whole
-script runs in stats.camp**. A setup-and-Table-2 smoke test with the local
-development engine on 2026-09-09 reported `r(198)` at `set processors 2`.
-The test harness continued after that error and successfully ran the Table 2
-traffic and weather summaries; a successful full sequential run is not implied.
-The traffic means were 67.58307 (speed), 679.034 (volume), and 12.40809 (density).
+On 2026-10-15 the unchanged file was run in Stata 19.5 and in the native
+stats.camp engine on scratch copies. Neither run reports an error. The Table 2
+summaries, the fifteen OLS fits of Tables 6–7 with their five `testparm` F
+statistics, the Figure 5 regression and the five `ivregress 2sls` fits of
+Table 8 are equal row for row (20 result blocks). The native engine also runs
+the file in the opt-in replication test (`cargo test --features
+replication-tests` in `stats_core`), which hashes the inputs, checks the 28
+`tail49*` regressors of the Figure 5 regression, the 120 ring-by-hour effects
+and the retained graphs, and compares the Table 6–8 fits with a Stata 19.5
+fixture.
 
-Known compatibility targets in that development version include:
+Transcript differences, none of which change an estimate:
 
-- `set processors 2` in the original setup.
-- Graph-memory commands `graph combine` and `graph drop`.
-- The quadratic `twoway lpoly` smoother in Figure 6a.
-- The original factor-variable forms such as `ib(0).skc`,
-  `i(1).tail49#i(112/115).ring`, and `i(112/115).ring#i(1/23).hour`.
+- `F(48, 49) = NaN` where Stata prints `.` (the cluster-robust F is not
+  computable with 48 regressors and 50 clusters).
+- `ivregress` output uses the engine's own layout (title `Two-stage least
+  squares regression`, no `|` rules, no `Robust`/cluster note, an extra
+  `Adj R-squared`, `Root MSE = 13.5903` instead of `13.59`, six-digit
+  coefficients, no `Endogenous:`/`Exogenous:` footer).
+- Factor levels print as numbers (`1`, `112`) where Stata prints the value
+  labels (`scattered`, `tuesday`, `(2nd,3rd]`), and base-level rows are shown.
 
-The large scatter plots and full observation-level fixed-effects regressions
-may also be expensive in a browser. No sampling or additional aggregation is
-introduced to speed them up. To explore supported portions, run a section
-starting with its `use ..., clear` command and include its macro definitions
-and data-preparation steps. Errors remain visible, and later results should
-not be treated as valid if their prerequisites failed.
+Figures 3–6 were exported from both programs and compared (see
+`aea_replication/figure_comparison.html` in the main repository). The scatter
+clouds, hourly profiles, the Figure 5 effects and the quadratic `twoway lpoly`
+smoother of Figure 6a coincide, which closes the earlier open check on the
+degree-2 bandwidth. Since the engine's graph fixes of 2026-10-15 the axis
+ranges and labels follow Stata's rule, `ycommon` aligns Figure 6b–c and the
+`ring(0)` legends of Figure 6 stay in their corner (reflowed to fewer
+columns). Remaining differences: larger fonts, the Figure 4–5 legends placed
+below the panels, and negative legend gaps (`keygap(-13) colgap(-13)
+rowgap(-13)`) rendered as zero gaps. Figure 4 is a special case: Stata's own
+export at the default size leaves only sliver-wide plot regions beside its
+ten-entry two-column legend, while the engine's panels are readable.
 
-The earlier end-to-end validation and regression checkpoint table applied to
-the now-removed simplified exercise, not this unchanged original. Full
-end-to-end browser compatibility has not been established for this version.
+The engine run takes about 23 minutes in the debug CLI build against 56
+seconds in Stata; a full run in the browser, with its memory and time cost for
+the observation-level regressions and large scatter plots, has not been
+measured. No sampling or additional aggregation is introduced.
 
 ## Source integrity
 
